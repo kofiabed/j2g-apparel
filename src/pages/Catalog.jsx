@@ -12,8 +12,6 @@ export default function Catalog() {
 
   // --- CORE STATE MATRICES ---
   const [searchQuery, setSearchQuery] = useState('');
-  const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [subscribedStatus, setSubscribedStatus] = useState(false);
   
   // MVP EXTRA FEATURES DRIVERS
   const [selectedProductForReview, setSelectedProductForReview] = useState(null);
@@ -39,22 +37,13 @@ export default function Catalog() {
     setSortByFilter('popularity');
   };
 
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    if (newsletterEmail.trim()) {
-      setSubscribedStatus(true);
-      setNewsletterEmail('');
-      setTimeout(() => setSubscribedStatus(false), 5000);
-    }
-  };
-
   const handleAddReviewSubmit = (e) => {
     e.preventDefault();
     if (!reviewText.trim()) return;
 
     updateProducts(products.map(p => p._id === selectedProductForReview._id ? {
       ...p,
-      reviews: [...p.reviews, { reviewer: user ? user.name : "Guest Buyer", rating: reviewRating, comment: reviewText }]
+      reviews: [...(p.reviews || []), { reviewer: user ? user.name : "Guest Buyer", rating: reviewRating, comment: reviewText }]
     } : p));
 
     alert("✨ Customer feedback securely pushed into product meta schema layer.");

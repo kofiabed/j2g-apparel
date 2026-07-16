@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
@@ -11,7 +11,6 @@ export default function Home() {
   const { wishlist, toggleWishlist, products, updateProducts } = useApp(); 
 
   // --- CORE STATE MATRICES ---
-  const [searchQuery, setSearchQuery] = useState('');
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [subscribedStatus, setSubscribedStatus] = useState(false);
   
@@ -37,7 +36,7 @@ export default function Home() {
 
     updateProducts(products.map(p => p._id === selectedProductForReview._id ? {
       ...p,
-      reviews: [...p.reviews, { reviewer: user ? user.name : "Guest Buyer", rating: reviewRating, comment: reviewText }]
+      reviews: [...(p.reviews || []), { reviewer: user ? user.name : "Guest Buyer", rating: reviewRating, comment: reviewText }]
     } : p));
 
     alert("✨ Customer feedback securely pushed into product meta schema layer.");

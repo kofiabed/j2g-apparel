@@ -257,7 +257,7 @@ export default function AdminDashboard() {
                           <img src={imagePreview} alt="Upload Grid Preview" className="w-24 h-32 object-cover rounded-xs" />
                           <button 
                             type="button" 
-                            onClick={() => { setImagePreview(''); setFormProduct(p => ({ ...prev, image: '' })); }}
+                            onClick={() => { setImagePreview(''); setFormProduct(p => ({ ...p, image: '' })); }}
                             className="absolute -top-1.5 -right-1.5 bg-brand-wine text-white rounded-full w-4 h-4 flex items-center justify-center font-bold text-[9px] cursor-pointer shadow shadow-black"
                           >
                             ✕
