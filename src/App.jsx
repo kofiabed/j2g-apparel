@@ -15,6 +15,7 @@ function Navbar() {
   const { user, logout } = useAuth(); 
   const { darkMode, toggleDarkMode } = useApp(); // 2. Hooked up dark mode dynamic controls
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Calculate shopping statistics on the fly
   const totalItems = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -26,13 +27,38 @@ function Navbar() {
   return (
     <>
       {/* NAVIGATION BAR */}
-      <nav className="bg-brand-black/75 backdrop-blur-lg text-white sticky top-0 z-40 px-4 md:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 tracking-widest border-b border-white/10 font-sans shadow-lg shadow-black/20 transition-all duration-500">
-        <Link to="/" className="text-xl font-bold tracking-widest hover:text-brand-wine transition group">
+      <nav className="bg-brand-black/75 backdrop-blur-lg text-white sticky top-0 z-40 px-4 md:px-6 py-4 flex justify-between items-center tracking-widest border-b border-white/10 font-sans shadow-lg shadow-black/20 transition-all duration-500 relative">
+        <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xl font-bold tracking-widest hover:text-brand-wine transition group">
           J2G <span className="text-brand-wine group-hover:text-brand-gold transition-colors duration-300">APPAREL</span>
         </Link>
         
-        <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-[10px] md:text-[11px] uppercase font-bold items-center tracking-[0.1em] md:tracking-[0.15em]">
-          <Link to="/" className="relative group hover:text-white text-zinc-300 transition-colors duration-300 hidden sm:block">
+        {/* MOBILE TOGGLES (Hamburger + Cart) */}
+        <div className="flex items-center gap-3 md:hidden">
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="relative flex items-center bg-brand-wine/20 px-3 py-1.5 rounded-full border border-brand-wine/40 cursor-pointer"
+          >
+            <span className="text-sm">🛒</span>
+            <span className="font-bold text-brand-gold ml-2 text-xs">{totalItems}</span>
+          </button>
+          
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2.5 border border-zinc-700 rounded-sm hover:bg-zinc-800 transition cursor-pointer relative z-50 bg-black/50"
+            title="Toggle Menu"
+          >
+            {/* Hamburger Icon Animation Matrix */}
+            <div className="space-y-1.5 w-5">
+              <div className={`w-full h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></div>
+              <div className={`w-full h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></div>
+              <div className={`w-full h-0.5 bg-white transition-all duration-300 ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></div>
+            </div>
+          </button>
+        </div>
+
+        {/* DESKTOP LINKS CONTAINER */}
+        <div className="hidden md:flex gap-6 text-[11px] uppercase font-bold items-center tracking-[0.15em]">
+          <Link to="/" className="relative group hover:text-white text-zinc-300 transition-colors duration-300">
             Home
             <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
           </Link>
@@ -40,12 +66,11 @@ function Navbar() {
             Shop
             <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
           </Link> 
-          <Link to="/contact" className="relative group hover:text-white text-zinc-300 transition-colors duration-300 hidden sm:block">
+          <Link to="/contact" className="relative group hover:text-white text-zinc-300 transition-colors duration-300">
             Contact
             <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
           </Link>
           
-          {/* 3. INTEGRATED MANUALLY TRIGGERED THEME TOGGLE BUTTON */}
           <button 
             onClick={toggleDarkMode}
             className="p-1.5 rounded-full border border-zinc-800 hover:border-zinc-600 transition cursor-pointer text-sm bg-zinc-950/40 flex items-center justify-center w-8 h-8 select-none"
@@ -54,21 +79,15 @@ function Navbar() {
             {darkMode ? '☀️' : '🌙'}
           </button>
           
-          {/* USER SESSIONS CONTEXT INTERFACE */}
           {user ? (
-            <div className="flex items-center gap-3 md:gap-4">
-              {/* If user is admin, make their badge a clickable shortcut link to HQ panel */}
+            <div className="flex items-center gap-4">
               {user.role === 'admin' ? (
-                <Link 
-                  to="/admin" 
-                  className="text-[9px] md:text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm hover:bg-brand-wine/40 transition"
-                  title="Go to Admin Panel"
-                >
-                  👤 <span className="hidden sm:inline">{user.name}</span><span className="inline sm:hidden">HQ</span>
+                <Link to="/admin" className="text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm hover:bg-brand-wine/40 transition">
+                  👤 {user.name}
                 </Link>
               ) : (
-                <span className="text-[9px] md:text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm">
-                  👤 <span className="hidden sm:inline">{user.name}</span><span className="inline sm:hidden">Me</span>
+                <span className="text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm">
+                  👤 {user.name}
                 </span>
               )}
               <button onClick={logout} className="text-zinc-400 hover:text-brand-wine transition cursor-pointer text-xs">
@@ -79,15 +98,53 @@ function Navbar() {
             <Link to="/login" className="hover:text-brand-wine transition text-zinc-300">Login</Link>
           )}
 
-          {/* Interactive Toggle Button for Basket */}
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="relative flex items-center bg-brand-wine/20 px-3 md:px-4 py-2 rounded-full border border-brand-wine/40 cursor-pointer hover:bg-brand-wine/40 hover:border-brand-gold/50 hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-300 group"
+            className="relative flex items-center bg-brand-wine/20 px-4 py-2 rounded-full border border-brand-wine/40 cursor-pointer hover:bg-brand-wine/40 hover:border-brand-gold/50 hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-300 group"
           >
             <span className="text-sm group-hover:scale-110 transition-transform">🛒</span>
             <span className="font-bold text-brand-gold ml-2.5 text-xs">{totalItems}</span>
           </button>
         </div>
+
+        {/* MOBILE SLIDE-DOWN DROPDOWN MENU */}
+        {isMobileMenuOpen && (
+          <div className="absolute top-full left-0 w-full bg-brand-black/95 backdrop-blur-xl border-b border-white/10 md:hidden flex flex-col items-center py-8 gap-6 shadow-2xl shadow-black origin-top transition-all duration-300 z-50">
+            <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xs uppercase font-black tracking-[0.2em] text-white hover:text-brand-wine transition">Home</Link>
+            <Link to="/catalog" onClick={() => setIsMobileMenuOpen(false)} className="text-xs uppercase font-black tracking-[0.2em] text-white hover:text-brand-wine transition">Shop Collection</Link>
+            <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-xs uppercase font-black tracking-[0.2em] text-white hover:text-brand-wine transition">Contact Support</Link>
+            
+            <div className="w-16 h-px bg-white/20 my-2"></div>
+            
+            <button 
+              onClick={() => { toggleDarkMode(); setIsMobileMenuOpen(false); }}
+              className="text-xs uppercase font-bold tracking-widest text-zinc-300 flex items-center gap-2 hover:text-white transition cursor-pointer bg-zinc-900/50 px-6 py-2.5 rounded-full border border-zinc-800"
+            >
+              {darkMode ? '☀️ Switch to Light Mode' : '🌙 Switch to Dark Mode'}
+            </button>
+
+            {user ? (
+              <div className="flex flex-col items-center gap-4 mt-2">
+                {user.role === 'admin' ? (
+                  <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-6 py-3 rounded-sm shadow-sm hover:bg-brand-wine/40 transition">
+                    👤 {user.name} (HQ Panel)
+                  </Link>
+                ) : (
+                  <span className="text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-6 py-3 rounded-sm">
+                    👤 {user.name}
+                  </span>
+                )}
+                <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-zinc-400 hover:text-brand-wine transition text-[11px] font-bold uppercase tracking-widest cursor-pointer underline underline-offset-4 mt-2">
+                  Secure Logout
+                </button>
+              </div>
+            ) : (
+              <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-xs uppercase font-bold tracking-widest text-zinc-300 hover:text-brand-wine bg-white/5 px-6 py-3 border border-white/10 rounded-sm">
+                Login to Client Portal
+              </Link>
+            )}
+          </div>
+        )}
       </nav>
 
       {/* SLIDE-OUT CART DRAWER SLIDE SYSTEM */}
