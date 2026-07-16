@@ -26,13 +26,13 @@ function Navbar() {
   return (
     <>
       {/* NAVIGATION BAR */}
-      <nav className="bg-brand-black/75 backdrop-blur-lg text-white sticky top-0 z-40 px-6 py-4 flex justify-between items-center tracking-widest border-b border-white/10 font-sans shadow-lg shadow-black/20 transition-all duration-500">
+      <nav className="bg-brand-black/75 backdrop-blur-lg text-white sticky top-0 z-40 px-4 md:px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 tracking-widest border-b border-white/10 font-sans shadow-lg shadow-black/20 transition-all duration-500">
         <Link to="/" className="text-xl font-bold tracking-widest hover:text-brand-wine transition group">
           J2G <span className="text-brand-wine group-hover:text-brand-gold transition-colors duration-300">APPAREL</span>
         </Link>
         
-        <div className="flex gap-6 text-[11px] uppercase font-bold items-center tracking-[0.15em]">
-          <Link to="/" className="relative group hover:text-white text-zinc-300 transition-colors duration-300">
+        <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-[10px] md:text-[11px] uppercase font-bold items-center tracking-[0.1em] md:tracking-[0.15em]">
+          <Link to="/" className="relative group hover:text-white text-zinc-300 transition-colors duration-300 hidden sm:block">
             Home
             <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
           </Link>
@@ -40,7 +40,7 @@ function Navbar() {
             Shop
             <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
           </Link> 
-          <Link to="/contact" className="relative group hover:text-white text-zinc-300 transition-colors duration-300">
+          <Link to="/contact" className="relative group hover:text-white text-zinc-300 transition-colors duration-300 hidden sm:block">
             Contact
             <span className="absolute -bottom-1 left-0 w-0 h-[1.5px] bg-brand-gold transition-all duration-300 group-hover:w-full"></span>
           </Link>
@@ -56,19 +56,19 @@ function Navbar() {
           
           {/* USER SESSIONS CONTEXT INTERFACE */}
           {user ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               {/* If user is admin, make their badge a clickable shortcut link to HQ panel */}
               {user.role === 'admin' ? (
                 <Link 
                   to="/admin" 
-                  className="text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm hover:bg-brand-wine/40 transition"
+                  className="text-[9px] md:text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm hover:bg-brand-wine/40 transition"
                   title="Go to Admin Panel"
                 >
-                  👤 {user.name}
+                  👤 <span className="hidden sm:inline">{user.name}</span><span className="inline sm:hidden">HQ</span>
                 </Link>
               ) : (
-                <span className="text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm">
-                  👤 {user.name}
+                <span className="text-[9px] md:text-[10px] font-bold text-brand-gold bg-brand-wine/20 border border-brand-wine/30 px-2.5 py-1 rounded-sm">
+                  👤 <span className="hidden sm:inline">{user.name}</span><span className="inline sm:hidden">Me</span>
                 </span>
               )}
               <button onClick={logout} className="text-zinc-400 hover:text-brand-wine transition cursor-pointer text-xs">
@@ -82,7 +82,7 @@ function Navbar() {
           {/* Interactive Toggle Button for Basket */}
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="relative flex items-center bg-brand-wine/20 px-4 py-2 rounded-full border border-brand-wine/40 cursor-pointer hover:bg-brand-wine/40 hover:border-brand-gold/50 hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-300 group"
+            className="relative flex items-center bg-brand-wine/20 px-3 md:px-4 py-2 rounded-full border border-brand-wine/40 cursor-pointer hover:bg-brand-wine/40 hover:border-brand-gold/50 hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-300 group"
           >
             <span className="text-sm group-hover:scale-110 transition-transform">🛒</span>
             <span className="font-bold text-brand-gold ml-2.5 text-xs">{totalItems}</span>
