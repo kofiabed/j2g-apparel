@@ -166,7 +166,7 @@ export default function Catalog() {
 
           {/* SHOWROOM GRID AREA (COMPUTED DYNAMIC MODE THEME TOKENS) */}
           <main className="grid col-span-1 md:col-span-8 lg:col-span-9 w-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 md:gap-5">
               {filteredProducts.map(product => {
                 const isWishlisted = wishlist.some(item => item._id === product._id);
                 const averageRating = product.reviews?.length ? Math.round(product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length) : 5;
