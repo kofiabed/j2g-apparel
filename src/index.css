@@ -1,12 +1,21 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
-  /* 🔍 ADD THIS EXACT LINE FOR TAILWIND v4 CLASS-BASED DARK MODE */
-  --v4-dark-mode: class; 
+  --color-brand-wine: #7A1527;
+  --color-brand-black: #111111;
+  --color-brand-gold: #D4AF37;
   
-  --color-brand-wine: #7A1527;   /* Deep wine red from your logo */
-  --color-brand-black: #111111;  /* Rich structural black */
-  --color-brand-gold: #D4AF37;   /* Accent luxury gold */
+  /* Semantic Tokens for Global Theme */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   
   --font-sans: 'Playfair Display', 'Inter', sans-serif;
 
@@ -32,12 +41,34 @@
 }
 
 @layer base {
-  body {
-    @apply bg-zinc-50 text-brand-black transition-colors duration-500 selection:bg-brand-wine selection:text-white;
+  :root {
+    --background: #ffffff;
+    --foreground: #111111;
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --border: #e4e4e7;
+    --input: #ffffff;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
   }
-  /* In v4, class selector routing behaves perfectly with standard selector scoping */
+
+  .dark {
+    --background: #0a0a0a;
+    --foreground: #f4f4f5;
+    --card: #18181b;
+    --card-foreground: #f4f4f5;
+    --border: #27272a;
+    --input: #18181b;
+    --muted: #27272a;
+    --muted-foreground: #a1a1aa;
+  }
+
+  body {
+    @apply bg-background text-foreground transition-colors duration-500 selection:bg-brand-wine selection:text-white;
+  }
+  
   .dark body {
-    @apply bg-[#0a0a0a] text-zinc-100 selection:bg-brand-gold selection:text-brand-black;
+    @apply selection:bg-brand-gold selection:text-brand-black;
   }
 }
 
@@ -51,8 +82,8 @@ input[type="range"]::-webkit-slider-thumb {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-zinc-100 dark:bg-zinc-900;
+  @apply bg-muted;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-300 dark:bg-zinc-700 rounded-full hover:bg-brand-wine transition-colors;
+  @apply bg-muted-foreground/50 rounded-full hover:bg-brand-wine transition-colors;
 }

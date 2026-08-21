@@ -29,9 +29,45 @@ export const AppProvider = ({ children }) => {
     const savedWishlist = localStorage.getItem('j2g_wishlist');
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     
-    const savedProducts = localStorage.getItem('j2g_products');
-    if (savedProducts) setProducts(JSON.parse(savedProducts));
-    else setProducts(initialProducts);
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:5000/api/products');
+        if (res.ok) {
+          const data = await res.json();
+          // Map id to _id for frontend compatibility
+          const mappedData = data.map(p => ({
+            ...p,
+            _id: p.id,
+            category: p.category ? p.category.name : 'Unknown',
+            discountPrice: p.discountedPrice || null,
+            popularity: p.popularity || 0,
+            dateAdded: new Date(p.createdAt).getTime(),
+            isTrending: p.isFeatured || false,
+            isNewArrival: p.isNewArrival || false,
+            isBestSeller: p.isBestSeller || false,
+            brand: p.brand || 'J2G Apparel',
+            material: p.material || null,
+            slug: p.slug || p.id,
+            images: p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [],
+            sizes: p.sizes ? (typeof p.sizes === 'string' ? JSON.parse(p.sizes) : p.sizes) : [],
+            colors: p.colors ? (typeof p.colors === 'string' ? JSON.parse(p.colors) : p.colors) : [],
+            reviews: p.reviews || []
+          }));
+          setProducts(mappedData);
+          localStorage.setItem('j2g_products', JSON.stringify(mappedData));
+        } else {
+          // Fallback to local storage if API fails
+          const savedProducts = localStorage.getItem('j2g_products');
+          if (savedProducts) setProducts(JSON.parse(savedProducts));
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        const savedProducts = localStorage.getItem('j2g_products');
+        if (savedProducts) setProducts(JSON.parse(savedProducts));
+      }
+    };
+    
+    fetchProducts();
   }, []);
 
   const toggleDarkMode = () => {

@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("CUSTOMER") // ADMIN, CUSTOMER
+  phone     String?
+  addresses String?  // Storing as JSON string for simplicity, or can be separate model
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  orders    Order[]
+  reviews   Review[]
+  wishlists Wishlist[]
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  image     String?
+  products  Product[]
+}
+
+model Product {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique @default("")
+  description     String
+  price           Float
+  discountedPrice Float?
+  sku             String   @unique
+  stock           Int      @default(0)
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id])
+  images          String   // JSON string of image URLs
+  sizes           String?  // JSON string of sizes
+  colors          String?  // JSON string of colors
+  brand           String?
+  material        String?
+  isFeatured      Boolean  @default(false)
+  isNewArrival    Boolean  @default(false)
+  isBestSeller    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  orderItems      OrderItem[]
+  reviews         Review[]
+  wishlists       Wishlist[]
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  totalAmount     Float
+  status          String      @default("Pending") // Pending, Processing, Shipped, Delivered
+  paymentStatus   String      @default("Unpaid")  // Unpaid, Paid, Failed
+  shippingAddress String      // JSON string of address details
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  orderItems      OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  size      String?
+  color     String?
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Wishlist {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}

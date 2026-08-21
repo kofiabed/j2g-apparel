@@ -12,28 +12,28 @@ export default function Contact() {
   };
 
   return (
-    <div className="bg-zinc-50 dark:bg-zinc-950 text-brand-black dark:text-zinc-100 min-h-screen py-20 px-6 font-sans transition-colors duration-500">
+    <div className="bg-background text-foreground min-h-screen py-20 px-6 font-sans transition-colors duration-500">
       <div className="max-w-6xl mx-auto animate-fade-in-up">
         
         {/* Header Block */}
         <div className="text-center max-w-xl mx-auto mb-16 relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-brand-gold/10 rounded-full blur-[60px] pointer-events-none"></div>
-          <h1 className="text-4xl font-light tracking-widest uppercase text-zinc-900 dark:text-white relative z-10">
+          <h1 className="text-4xl font-light tracking-widest uppercase text-foreground relative z-10">
             Contact <span className="font-black text-brand-wine drop-shadow-sm">J2G Hub</span>
           </h1>
           <div className="h-[3px] w-20 bg-brand-wine mx-auto mt-4 mb-5 shadow-[0_0_10px_rgba(122,21,39,0.4)]"></div>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 uppercase tracking-[0.2em] relative z-10">Get in touch for bespoke orders or delivery routing assistance</p>
+          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em] relative z-10">Get in touch for bespoke orders or delivery routing assistance</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
           {/* LEFT PANEL: CONTACT METADATA */}
-          <div className="lg:col-span-5 space-y-10 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl p-10 border border-white/20 dark:border-white/5 rounded-sm shadow-2xl relative overflow-hidden">
+          <div className="lg:col-span-5 space-y-10 bg-card/70 backdrop-blur-xl p-10 border border-border/40 rounded-sm shadow-2xl relative overflow-hidden">
             <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-brand-wine/5 rounded-full blur-[60px] pointer-events-none"></div>
             
             <div className="space-y-3 relative z-10">
               <h3 className="text-xs font-black uppercase tracking-[0.25em] text-brand-wine">📍 Showroom Location</h3>
-              <p className="text-sm font-black text-zinc-900 dark:text-white tracking-wide">Awoshie - Onyinase</p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed font-light">Accra, Ghana — Directly adjacent to the Onyinase transit terminal hub.</p>
+              <p className="text-sm font-black text-foreground tracking-wide">Awoshie - Onyinase</p>
+              <p className="text-xs text-muted-foreground leading-relaxed font-light">Accra, Ghana — Directly adjacent to the Onyinase transit terminal hub.</p>
             </div>
 
             <div className="space-y-3 relative z-10">
@@ -54,13 +54,13 @@ export default function Contact() {
 
             <div className="space-y-3 relative z-10">
               <h3 className="text-xs font-black uppercase tracking-[0.25em] text-brand-wine">📧 Digital Correspondence</h3>
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 tracking-wide">orders@j2gapparel.com</p>
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 tracking-wide">support@j2gapparel.com</p>
+              <p className="text-sm font-medium text-foreground tracking-wide">orders@j2gapparel.com</p>
+              <p className="text-sm font-medium text-foreground tracking-wide">support@j2gapparel.com</p>
             </div>
 
-            <div className="space-y-4 border-t border-zinc-200/50 dark:border-zinc-800 pt-8 relative z-10">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">Connect Digitally</h3>
-              <div className="flex gap-6 text-[11px] font-black uppercase tracking-[0.2em] text-zinc-600 dark:text-zinc-400">
+            <div className="space-y-4 border-t border-zinc-200/50 dark:border-border pt-8 relative z-10">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">Connect Digitally</h3>
+              <div className="flex gap-6 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                 <a href="#instagram" className="hover:text-brand-wine dark:hover:text-brand-wine transition-colors">Instagram</a>
                 <a href="#tiktok" className="hover:text-brand-wine dark:hover:text-brand-wine transition-colors">TikTok</a>
                 <a href="#facebook" className="hover:text-brand-wine dark:hover:text-brand-wine transition-colors">Facebook</a>
@@ -70,8 +70,8 @@ export default function Contact() {
           </div>
 
           {/* RIGHT PANEL: MESSAGE SUBMISSION FORM */}
-          <div className="lg:col-span-7 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-white/20 dark:border-white/5 p-10 rounded-sm shadow-xl relative z-10">
-            <h3 className="text-xs font-black uppercase tracking-[0.25em] text-zinc-900 dark:text-white border-b border-zinc-200/50 dark:border-zinc-800 pb-4 mb-8">Send An On-Screen Inquiry</h3>
+          <div className="lg:col-span-7 bg-input/50 backdrop-blur-md border border-border/40 p-10 rounded-sm shadow-xl relative z-10">
+            <h3 className="text-xs font-black uppercase tracking-[0.25em] text-foreground border-b border-zinc-200/50 dark:border-border pb-4 mb-8">Send An On-Screen Inquiry</h3>
             
             {formSubmitted && (
               <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs p-5 rounded-sm mb-8 tracking-wide uppercase animate-pulse">
@@ -82,20 +82,20 @@ export default function Contact() {
             <form onSubmit={handleMessageSubmit} className="space-y-6 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest mb-2">Your Name</label>
-                  <input type="text" required value={message.name} onChange={(e) => setMessage({ ...message, name: e.target.value })} className="w-full border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm outline-none focus:border-brand-wine dark:focus:border-brand-wine bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm transition-all focus:shadow-[0_0_15px_rgba(122,21,39,0.1)] text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600" />
+                  <label className="block text-muted-foreground font-bold uppercase tracking-widest mb-2">Your Name</label>
+                  <input type="text" required value={message.name} onChange={(e) => setMessage({ ...message, name: e.target.value })} className="w-full border border-border p-4 rounded-sm outline-none focus:border-brand-wine dark:focus:border-brand-wine bg-white/60 dark:bg-muted/60 backdrop-blur-sm transition-all focus:shadow-[0_0_15px_rgba(122,21,39,0.1)] text-foreground placeholder:text-muted-foreground" />
                 </div>
                 <div>
-                  <label className="block text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest mb-2">Email Address</label>
-                  <input type="email" required value={message.email} onChange={(e) => setMessage({ ...message, email: e.target.value })} className="w-full border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm outline-none focus:border-brand-wine dark:focus:border-brand-wine bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm transition-all focus:shadow-[0_0_15px_rgba(122,21,39,0.1)] text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600" />
+                  <label className="block text-muted-foreground font-bold uppercase tracking-widest mb-2">Email Address</label>
+                  <input type="email" required value={message.email} onChange={(e) => setMessage({ ...message, email: e.target.value })} className="w-full border border-border p-4 rounded-sm outline-none focus:border-brand-wine dark:focus:border-brand-wine bg-white/60 dark:bg-muted/60 backdrop-blur-sm transition-all focus:shadow-[0_0_15px_rgba(122,21,39,0.1)] text-foreground placeholder:text-muted-foreground" />
                 </div>
               </div>
               <div>
-                <label className="block text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest mb-2">Detailed Requirements</label>
-                <textarea rows="6" required value={message.context} onChange={(e) => setMessage({ ...message, context: e.target.value })} placeholder="State specific apparel sizes or customized delivery guidelines..." className="w-full border border-zinc-200 dark:border-zinc-800 p-4 rounded-sm outline-none focus:border-brand-wine dark:focus:border-brand-wine bg-white/60 dark:bg-zinc-900/60 backdrop-blur-sm transition-all focus:shadow-[0_0_15px_rgba(122,21,39,0.1)] text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 resize-none"></textarea>
+                <label className="block text-muted-foreground font-bold uppercase tracking-widest mb-2">Detailed Requirements</label>
+                <textarea rows="6" required value={message.context} onChange={(e) => setMessage({ ...message, context: e.target.value })} placeholder="State specific apparel sizes or customized delivery guidelines..." className="w-full border border-border p-4 rounded-sm outline-none focus:border-brand-wine dark:focus:border-brand-wine bg-white/60 dark:bg-muted/60 backdrop-blur-sm transition-all focus:shadow-[0_0_15px_rgba(122,21,39,0.1)] text-foreground placeholder:text-muted-foreground resize-none"></textarea>
               </div>
 
-              <button type="submit" className="w-full bg-[#111] dark:bg-zinc-100 text-white dark:text-[#111] text-[11px] font-black tracking-[0.25em] uppercase py-5 hover:bg-brand-wine dark:hover:bg-brand-wine dark:hover:text-white transition-all duration-300 rounded-sm shadow-xl hover:shadow-[0_0_20px_rgba(122,21,39,0.3)] hover:-translate-y-1 cursor-pointer mt-4">
+              <button type="submit" className="w-full bg-[#111] dark:bg-zinc-100 text-background text-[11px] font-black tracking-[0.25em] uppercase py-5 hover:bg-brand-wine dark:hover:bg-brand-wine dark:hover:text-white transition-all duration-300 rounded-sm shadow-xl hover:shadow-[0_0_20px_rgba(122,21,39,0.3)] hover:-translate-y-1 cursor-pointer mt-4">
                 Transmit Message Pipeline
               </button>
             </form>
