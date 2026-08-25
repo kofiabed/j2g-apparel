@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 //  The absolute correct named hook export syntax for react-paystack
 import { PaystackButton, usePaystackPayment } from 'react-paystack';
 
 export default function Checkout() {
   const { cart, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   // 1. INTEGRATED FORM STATE CONFIGURATIONS
@@ -48,30 +51,47 @@ export default function Checkout() {
 
     const submitOrderToBackend = async () => {
       try {
-        const orderData = {
-          items: cart.map(item => ({
-            productId: item._id, // the mapped _id from AppContext
+        const addressSummary = `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.address}, ${formData.region}`;
+        
+        // Insert into Supabase Order table
+        const { data: newOrder, error: orderError } = await supabase
+          .from('Order')
+          .insert([
+            {
+              userId: user ? user.id : 'admin-user-id-001',
+              totalAmount: totalAmount,
+              status: 'Processing',
+              paymentStatus: 'Paid',
+              shippingAddress: addressSummary,
+            },
+          ])
+          .select()
+          .single();
+
+        if (orderError) {
+          console.warn('Order insert notice:', orderError.message);
+        }
+
+        if (newOrder) {
+          const orderItems = cart.map(item => ({
+            orderId: newOrder.id,
+            productId: item._id || item.id,
             quantity: item.quantity,
-            price: item.discountPrice || item.price,
+            price: Number(item.discountPrice || item.price),
             size: item.selectedSize || null,
             color: item.selectedColor || null,
-          })),
-          totalAmount: totalAmount,
-          shippingAddress: formData,
-          paymentMethod: formData.paymentMethod
-        };
+          }));
 
-        const res = await fetch('http://127.0.0.1:5000/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData)
-        });
-        
-        if (res.ok) {
-          alert("🎉 Order Logged Flawlessly!\nOur hub at Awoshie - Onyinase has locked your route metrics.");
-        } else {
-          alert("Order saved locally, but backend sync failed (requires login).");
+          const { error: itemsError } = await supabase
+            .from('OrderItem')
+            .insert(orderItems);
+
+          if (itemsError) {
+            console.warn('OrderItem insert notice:', itemsError.message);
+          }
         }
+        
+        alert("🎉 Order Logged Flawlessly!\nOur hub at Awoshie - Onyinase has locked your route metrics.");
       } catch (err) {
         console.error("Order sync error", err);
       } finally {

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { supabase } from '../lib/supabase';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -27,7 +28,7 @@ export default function ProductDetails() {
   const [reviewComment, setReviewComment] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
-  // Load product from AppContext or fetch from API
+  // Load product from AppContext or fetch from Supabase
   useEffect(() => {
     window.scrollTo(0, 0);
     setValidationError('');
@@ -46,40 +47,53 @@ export default function ProductDetails() {
       else setSelectedColor('');
       setLoading(false);
     } else {
-      // Fetch directly from backend
-      fetch(`http://127.0.0.1:5000/api/products/${id}`)
-        .then(res => {
-          if (!res.ok) throw new Error('Product not found');
-          return res.json();
-        })
-        .then(data => {
+      // Fetch directly from Supabase
+      const fetchFromSupabase = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('Product')
+            .select('*, category:Category(id, name, slug)')
+            .or(`id.eq.${id},slug.eq.${id},sku.eq.${id}`)
+            .maybeSingle();
+
+          if (error || !data) throw new Error('Product not found');
+
+          const safeParse = (val, fallback = []) => {
+            if (!val) return fallback;
+            if (Array.isArray(val)) return val;
+            try { return JSON.parse(val); } catch { return fallback; }
+          };
+
           const mapped = {
             ...data,
             _id: data.id,
             category: data.category ? data.category.name : 'Unknown',
             discountPrice: data.discountedPrice || null,
             popularity: data.popularity || 0,
-            dateAdded: new Date(data.createdAt).getTime(),
+            dateAdded: new Date(data.createdAt || Date.now()).getTime(),
             isTrending: data.isFeatured || false,
             isNewArrival: data.isNewArrival || false,
             isBestSeller: data.isBestSeller || false,
             brand: data.brand || 'J2G Apparel',
             material: data.material || null,
             slug: data.slug || data.id,
-            images: data.images ? (typeof data.images === 'string' ? JSON.parse(data.images) : data.images) : [],
-            sizes: data.sizes ? (typeof data.sizes === 'string' ? JSON.parse(data.sizes) : data.sizes) : [],
-            colors: data.colors ? (typeof data.colors === 'string' ? JSON.parse(data.colors) : data.colors) : [],
+            images: safeParse(data.images, ['https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=800&q=80']),
+            sizes: safeParse(data.sizes, ['S', 'M', 'L']),
+            colors: safeParse(data.colors, ['Black', 'White']),
             reviews: data.reviews || []
           };
+
           setProduct(mapped);
           if (mapped.sizes && mapped.sizes.length === 1) setSelectedSize(mapped.sizes[0]);
           if (mapped.colors && mapped.colors.length > 0) setSelectedColor(mapped.colors[0]);
-          setLoading(false);
-        })
-        .catch(err => {
+        } catch (err) {
           console.error(err);
+        } finally {
           setLoading(false);
-        });
+        }
+      };
+
+      fetchFromSupabase();
     }
   }, [id, products]);
 

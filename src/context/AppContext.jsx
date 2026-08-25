@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialProducts } from '../data/products';
+import { supabase } from '../lib/supabase';
 
 const safeJsonParse = (str, fallback = []) => {
   if (!str) return fallback;
@@ -22,19 +23,17 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [wishlist, setWishlist] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(initialProducts);
 
   // Sync Theme Layer State on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('j2g_theme');
     let isDark = false;
     
-    // Auto-switch logic based on time of day if no manual override
     if (savedTheme !== null) {
       isDark = savedTheme === 'dark';
     } else {
       const currentHour = new Date().getHours();
-      // Evening/Night is 6 PM (18:00) to 6 AM (06:00)
       isDark = currentHour >= 18 || currentHour < 6;
     }
 
@@ -47,44 +46,49 @@ export const AppProvider = ({ children }) => {
     
     const fetchProducts = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:5000/api/products');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            // Map id to _id for frontend compatibility
-            const mappedData = data.map(p => ({
-              ...p,
-              _id: p.id,
-              category: p.category ? p.category.name : 'Unknown',
-              discountPrice: p.discountedPrice || null,
-              popularity: p.popularity || 0,
-              dateAdded: new Date(p.createdAt).getTime(),
-              isTrending: p.isFeatured || false,
-              isNewArrival: p.isNewArrival || false,
-              isBestSeller: p.isBestSeller || false,
-              brand: p.brand || 'J2G Apparel',
-              material: p.material || null,
-              slug: p.slug || p.id,
-              images: safeJsonParse(p.images, []),
-              sizes: safeJsonParse(p.sizes, []),
-              colors: safeJsonParse(p.colors, []),
-              reviews: p.reviews || []
-            }));
-            setProducts(mappedData);
-            localStorage.setItem('j2g_products', JSON.stringify(mappedData));
-          } else {
-            const savedProducts = localStorage.getItem('j2g_products');
-            if (savedProducts) setProducts(JSON.parse(savedProducts));
-          }
-        } else {
-          // Fallback to local storage if API fails
+        const { data, error } = await supabase
+          .from('Product')
+          .select('*, category:Category(id, name, slug)');
+
+        if (error) {
+          console.warn('Supabase fetch error, fallback to cache/initial:', error.message);
           const savedProducts = localStorage.getItem('j2g_products');
           if (savedProducts) setProducts(JSON.parse(savedProducts));
+          else setProducts(initialProducts);
+          return;
+        }
+
+        if (Array.isArray(data) && data.length > 0) {
+          const mappedData = data.map(p => ({
+            ...p,
+            _id: p.id,
+            category: p.category ? p.category.name : (p.categoryName || 'Unknown'),
+            discountPrice: p.discountedPrice || null,
+            popularity: p.popularity || 0,
+            dateAdded: new Date(p.createdAt || Date.now()).getTime(),
+            isTrending: p.isFeatured || false,
+            isNewArrival: p.isNewArrival || false,
+            isBestSeller: p.isBestSeller || false,
+            brand: p.brand || 'J2G Apparel',
+            material: p.material || null,
+            slug: p.slug || p.id,
+            images: safeJsonParse(p.images, ['https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=800&q=80']),
+            sizes: safeJsonParse(p.sizes, ['S', 'M', 'L']),
+            colors: safeJsonParse(p.colors, ['Black', 'White']),
+            reviews: p.reviews || []
+          }));
+          setProducts(mappedData);
+          localStorage.setItem('j2g_products', JSON.stringify(mappedData));
+        } else {
+          const savedProducts = localStorage.getItem('j2g_products');
+          if (savedProducts) setProducts(JSON.parse(savedProducts));
+          else setProducts(initialProducts);
         }
       } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error('Error fetching products from Supabase:', err);
         const savedProducts = localStorage.getItem('j2g_products');
         if (savedProducts) setProducts(JSON.parse(savedProducts));
+        else setProducts(initialProducts);
       }
     };
     

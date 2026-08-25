@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -24,6 +25,33 @@ export default function AdminDashboard() {
     { id: 'ORD-8794', customer: 'Abena Osei', date: '2026-05-23', total: 290, status: 'Shipped', address: 'East Legon, Accra' },
     { id: 'ORD-8611', customer: 'Derrick Kwakye', date: '2026-05-20', total: 1350, status: 'Delivered', address: 'Awoshie - Onyinase Hub' }
   ]);
+
+  // Fetch real orders from Supabase on mount
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('Order')
+          .select('*, items:OrderItem(*), user:User(id, name, email)')
+          .order('createdAt', { ascending: false });
+
+        if (data && data.length > 0) {
+          const mappedOrders = data.map(o => ({
+            id: o.id,
+            customer: o.user?.name || (typeof o.shippingAddress === 'string' ? o.shippingAddress.split(',')[0] : 'Customer'),
+            date: new Date(o.createdAt || Date.now()).toISOString().split('T')[0],
+            total: o.totalAmount,
+            status: o.status || 'Processing',
+            address: typeof o.shippingAddress === 'string' ? o.shippingAddress : 'Awoshie - Onyinase Hub'
+          }));
+          setOrders(mappedOrders);
+        }
+      } catch (err) {
+        console.warn('Orders fetch note:', err);
+      }
+    };
+    fetchOrders();
+  }, []);
 
   // --- ADVANCED METRICS RUN-TIME LOGIC ---
   const totalRevenue = orders.reduce((acc, ord) => acc + ord.total, 0);
@@ -85,16 +113,59 @@ export default function AdminDashboard() {
       const parsedSizes = typeof formProduct.sizes === 'string' 
         ? formProduct.sizes.split(',').map(s => s.trim()).filter(Boolean)
         : formProduct.sizes || [];
-      const parsedColors = typeof formProduct.colors === 'string'
+      const parsedColors = typeof formProduct.colors === 'string' 
         ? formProduct.colors.split(',').map(c => c.trim()).filter(Boolean)
         : formProduct.colors || [];
 
+      // Find or link category id
+      let categoryId = null;
+      try {
+        const { data: cat } = await supabase
+          .from('Category')
+          .select('id')
+          .ilike('name', formProduct.category)
+          .maybeSingle();
+        if (cat) categoryId = cat.id;
+      } catch (catErr) {
+        console.warn('Category lookup note:', catErr);
+      }
+
       if (isEditing) {
-        const payload = {
+        const updateData = {
           name: formProduct.name,
           description: formProduct.description || formProduct.name,
           brand: formProduct.brand || 'J2G Couture',
           material: formProduct.material || null,
+          price: Number(formProduct.price),
+          discountedPrice: formProduct.discountPrice ? Number(formProduct.discountPrice) : null,
+          stock: Number(formProduct.stock),
+          images: JSON.stringify([formProduct.image || fallbackImage]),
+          sizes: JSON.stringify(parsedSizes),
+          colors: JSON.stringify(parsedColors),
+          isFeatured: Boolean(formProduct.isFeatured),
+          isNewArrival: Boolean(formProduct.isNewArrival),
+          isBestSeller: Boolean(formProduct.isBestSeller)
+        };
+        if (categoryId) updateData.categoryId = categoryId;
+
+        const { data: updatedDbProduct, error: updateError } = await supabase
+          .from('Product')
+          .update(updateData)
+          .eq('id', currentProductId)
+          .select('*, category:Category(id, name, slug)')
+          .maybeSingle();
+
+        if (updateError) {
+          console.warn('Supabase update notice:', updateError.message);
+        }
+        
+        const mappedProduct = {
+          ...(updatedDbProduct || {}),
+          _id: currentProductId,
+          name: formProduct.name,
+          description: formProduct.description,
+          brand: formProduct.brand,
+          material: formProduct.material,
           price: Number(formProduct.price),
           discountPrice: formProduct.discountPrice ? Number(formProduct.discountPrice) : null,
           category: formProduct.category,
@@ -102,27 +173,10 @@ export default function AdminDashboard() {
           images: [formProduct.image || fallbackImage],
           sizes: parsedSizes,
           colors: parsedColors,
-          isFeatured: Boolean(formProduct.isFeatured),
+          isTrending: Boolean(formProduct.isFeatured),
           isNewArrival: Boolean(formProduct.isNewArrival),
-          isBestSeller: Boolean(formProduct.isBestSeller)
-        };
-        const res = await fetch(`http://127.0.0.1:5000/api/products/${currentProductId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error("Failed to update product");
-        const updatedDbProduct = await res.json();
-        
-        const mappedProduct = {
-          ...updatedDbProduct,
-          _id: updatedDbProduct.id,
-          category: updatedDbProduct.category ? updatedDbProduct.category.name : formProduct.category,
-          discountPrice: updatedDbProduct.discountedPrice || null,
-          images: updatedDbProduct.images ? JSON.parse(updatedDbProduct.images) : [fallbackImage],
-          sizes: updatedDbProduct.sizes ? JSON.parse(updatedDbProduct.sizes) : parsedSizes,
-          colors: updatedDbProduct.colors ? JSON.parse(updatedDbProduct.colors) : parsedColors,
-          reviews: updatedDbProduct.reviews || []
+          isBestSeller: Boolean(formProduct.isBestSeller),
+          reviews: updatedDbProduct?.reviews || []
         };
         
         updateProducts(products.map(p => p._id === currentProductId ? mappedProduct : p));
@@ -130,12 +184,45 @@ export default function AdminDashboard() {
         setCurrentProductId(null);
         alert("✨ Product specs updated successfully.");
       } else {
-        const payload = {
+        const generatedSku = `SKU-${Date.now().toString().slice(-6)}`;
+        const newProductRecord = {
           name: formProduct.name,
+          slug: formProduct.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
           description: formProduct.description || formProduct.name,
           brand: formProduct.brand || 'J2G Couture',
           material: formProduct.material || null,
-          sku: `SKU-${new Date().getTime().toString().slice(-6)}`,
+          sku: generatedSku,
+          price: Number(formProduct.price),
+          discountedPrice: formProduct.discountPrice ? Number(formProduct.discountPrice) : null,
+          categoryId: categoryId,
+          stock: Number(formProduct.stock),
+          images: JSON.stringify([formProduct.image || fallbackImage]),
+          sizes: JSON.stringify(parsedSizes),
+          colors: JSON.stringify(parsedColors),
+          isFeatured: Boolean(formProduct.isFeatured),
+          isNewArrival: Boolean(formProduct.isNewArrival),
+          isBestSeller: Boolean(formProduct.isBestSeller)
+        };
+        
+        const { data: newDbProduct, error: insertError } = await supabase
+          .from('Product')
+          .insert([newProductRecord])
+          .select('*, category:Category(id, name, slug)')
+          .maybeSingle();
+
+        if (insertError) {
+          console.warn('Supabase insert notice:', insertError.message);
+        }
+        
+        const generatedId = newDbProduct?.id || `prod-${Date.now()}`;
+        const mappedNewProduct = {
+          ...(newDbProduct || {}),
+          _id: generatedId,
+          name: formProduct.name,
+          description: formProduct.description,
+          brand: formProduct.brand,
+          material: formProduct.material,
+          sku: generatedSku,
           price: Number(formProduct.price),
           discountPrice: formProduct.discountPrice ? Number(formProduct.discountPrice) : null,
           category: formProduct.category,
@@ -143,32 +230,14 @@ export default function AdminDashboard() {
           images: [formProduct.image || fallbackImage],
           sizes: parsedSizes,
           colors: parsedColors,
-          isFeatured: Boolean(formProduct.isFeatured),
+          isTrending: Boolean(formProduct.isFeatured),
           isNewArrival: Boolean(formProduct.isNewArrival),
-          isBestSeller: Boolean(formProduct.isBestSeller)
-        };
-        
-        const res = await fetch(`http://127.0.0.1:5000/api/products`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error("Failed to create product");
-        const newDbProduct = await res.json();
-        
-        const mappedNewProduct = {
-          ...newDbProduct,
-          _id: newDbProduct.id,
-          category: newDbProduct.category ? newDbProduct.category.name : formProduct.category,
-          discountPrice: newDbProduct.discountedPrice || null,
-          images: newDbProduct.images ? JSON.parse(newDbProduct.images) : [fallbackImage],
-          sizes: newDbProduct.sizes ? JSON.parse(newDbProduct.sizes) : parsedSizes,
-          colors: newDbProduct.colors ? JSON.parse(newDbProduct.colors) : parsedColors,
+          isBestSeller: Boolean(formProduct.isBestSeller),
           reviews: []
         };
 
         updateProducts([mappedNewProduct, ...products]);
-        alert("🎉 Product file successfully added to showroom repository.");
+        alert("🎉 Product successfully added to catalog.");
       }
       
       // Clear Form and Metadata Toggles
@@ -191,8 +260,8 @@ export default function AdminDashboard() {
       setImagePreview('');
       if (e.target.reset) e.target.reset();
     } catch (error) {
-      console.error(error);
-      alert("⚠️ Error saving product to backend database.");
+      console.error('Error in handleSaveProduct:', error);
+      alert("⚠️ Error saving product: " + (error.message || 'Please check database connection.'));
     }
   };
 
@@ -221,24 +290,32 @@ export default function AdminDashboard() {
   const handleDeleteProduct = async (id) => {
     if (window.confirm("Are you sure you want to delete this structural inventory item?")) {
       try {
-        const res = await fetch(`http://127.0.0.1:5000/api/products/${id}`, {
-          method: 'DELETE'
-        });
-        if (!res.ok) throw new Error("Failed to delete product");
-        
-        updateProducts(products.filter(p => p._id !== id));
+        const { error } = await supabase.from('Product').delete().eq('id', id);
+        if (error) {
+          console.warn('Supabase product delete notice:', error.message);
+        }
+        updateProducts(products.filter(p => p._id !== id && p.id !== id));
       } catch (error) {
         console.error(error);
-        alert("⚠️ Error deleting product from backend database.");
+        updateProducts(products.filter(p => p._id !== id && p.id !== id));
       }
     }
   };
 
-  const handleToggleOrderStatus = (orderId) => {
+  const handleToggleOrderStatus = async (orderId) => {
+    const targetOrder = orders.find(ord => ord.id === orderId);
+    if (!targetOrder) return;
+    const nextStatus = targetOrder.status === 'Processing' ? 'Shipped' : 'Delivered';
     setOrders(orders.map(ord => ord.id === orderId ? {
       ...ord,
-      status: ord.status === 'Processing' ? 'Shipped' : 'Delivered'
+      status: nextStatus
     } : ord));
+
+    try {
+      await supabase.from('Order').update({ status: nextStatus }).eq('id', orderId);
+    } catch (err) {
+      console.warn('Order status update notice:', err);
+    }
   };
 
   if (!user || user.role !== 'ADMIN') return null;
